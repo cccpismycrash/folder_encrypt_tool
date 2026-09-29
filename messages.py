@@ -9,3 +9,10 @@ class LoggerMessages(StrEnum):
     NO_WRITE_PERMISSION = 'No write permission'
     FILE_NOT_ENCRYPTED = 'File is not encrypted or was encrypted by another utility'
     BAD_PASSWORD = 'Incorrect password or corrupted file'
+
+
+class ParserMessages(StrEnum):
+    PATH_NOT_HOME_DIR = 'source must be inside the home directory'
+    PATH_TO_APP_DIR = 'source must not contain the application directory'
+    SYMLICK_PATH = 'source must not be a symbolic link'
+    PATH_NOT_EXISTING = 'source must be an existing directory'
