@@ -56,25 +56,25 @@ class Encrypter:
                 self.__decrypt(file, password)
                 
 
-        # output
-        processed = len(files) - len(self.__skipped_files)
-        operation = 'Encryption' if encrypt_flag else 'Decryption'
+        # # output
+        # processed = len(files) - len(self.__skipped_files)
+        # operation = 'Encryption' if encrypt_flag else 'Decryption'
 
-        print()
+        # print()
 
-        if self.__skipped_files:
-            print(f'[+] {operation} completed.')
-            print(f'    Processed: {processed}')
-            print(f'    Skipped:   {len(self.__skipped_files)}')
+        # if self.__skipped_files:
+        #     print(f'[+] {operation} completed.')
+        #     print(f'    Processed: {processed}')
+        #     print(f'    Skipped:   {len(self.__skipped_files)}')
 
-            print('\nSkipped files:')
-            for file, reason in self.__skipped_files:
-                print('[!]', f'{reason}:', file)
-        else:
-            print(f'[+] {operation} completed successfully.')
-            print(f'    Processed: {processed}')
+        #     print('\nSkipped files:')
+        #     for file, reason in self.__skipped_files:
+        #         print('[!]', f'{reason}:', file)
+        # else:
+        #     print(f'[+] {operation} completed successfully.')
+        #     print(f'    Processed: {processed}')
 
-        print()
+        # print()
 
 
     def __generate_key(self, password: str, salt: bytes) -> bytes:
@@ -98,24 +98,27 @@ class Encrypter:
         """
 
         if source.is_symlink():
-            self.__skipped_files.append((source, 'Symbolic links are not allowed')) 
+            self.__skipped_files.append((source, ErrorMessages.SYMLINK_NOT_ALLOWED)) 
             self.__skipped_inc()
             return
 
         try:
             with open(source, 'rb') as f:
                 if f.read(len(self.__signature)) == self.__signature:
-                    self.__skipped_files.append((source, 'File is already encrypted'))
+                    self.__skipped_files.append((source, ErrorMessages.FILE_ALREADY_ENCRYPTED))
                     self.__skipped_inc()
                     return
                 f.seek(0)
                 data = f.read()
         except PermissionError:
-            self.__skipped_files.append((source, 'No read permission'))
+            self.__skipped_files.append((source, ErrorMessages.NO_READ_PERMISSION))
             self.__skipped_inc()
             return
         except Exception as e:
-            self.__skipped_files.append((source, f'Unknown error – {e}'))
+            self.__skipped_files.append((source, 
+                                         ErrorMessages.UNKNOWN_ERROR.format(
+                                             error=e
+                                         )))
             self.__skipped_inc()
             return
 
@@ -131,11 +134,14 @@ class Encrypter:
                 f_out.write(encrypted_data)
                 self.__processed_inc()
         except PermissionError:
-            self.__skipped_files.append((source, 'No write permission'))
+            self.__skipped_files.append((source, ErrorMessages.NO_WRITE_PERMISSION))
             self.__skipped_inc()
             return
         except Exception as e:
-            self.__skipped_files.append((source, f'Unknown error – {e}'))
+            self.__skipped_files.append((source, 
+                                         ErrorMessages.UNKNOWN_ERROR.format(
+                                             error=e
+                                         )))
             self.__skipped_inc()
             return
 
@@ -146,24 +152,27 @@ class Encrypter:
         """
 
         if source.is_symlink():
-            self.__skipped_files.append((source, 'Symbolic links are not allowed'))
+            self.__skipped_files.append((source, ErrorMessages.SYMLINK_NOT_ALLOWED))
             self.__skipped_inc()
             return
 
         try:
             with open(source, 'rb') as f:
                 if f.read(len(self.__signature)) != self.__signature:
-                    self.__skipped_files.append((source, 'File is not encrypted or was encrypted by another utility'))
+                    self.__skipped_files.append((source, ErrorMessages.FILE_NOT_ENCRYPTED))
                     self.__skipped_inc()
                     return
                 salt = f.read(16)
                 encrypted_data = f.read()
         except PermissionError:
-            self.__skipped_files.append((source, 'No read permission'))
+            self.__skipped_files.append((source, ErrorMessages.NO_READ_PERMISSION))
             self.__skipped_inc()
             return
         except Exception as e:
-            self.__skipped_files.append((source, f'Unknown error – {e}'))
+            self.__skipped_files.append((source, 
+                                         ErrorMessages.UNKNOWN_ERROR.format(
+                                             error=e
+                                         )))
             self.__skipped_inc()
             return
 
@@ -178,29 +187,38 @@ class Encrypter:
                     f_out.write(data)
                     self.__processed_inc()
             except PermissionError:
-                self.__skipped_files.append((source, 'No write permission'))
+                self.__skipped_files.append((source, ErrorMessages.NO_WRITE_PERMISSION))
                 self.__skipped_inc()
                 return
             except Exception as e:
-                self.__skipped_files.append((source, f'Unknown error – {e}'))
+                self.__skipped_files.append((source, 
+                                            ErrorMessages.UNKNOWN_ERROR.format(
+                                                error=e
+                                            )))
                 self.__skipped_inc()
                 return
 
         except InvalidToken:
-            self.__skipped_files.append((source, 'Incorrect password or corrupted file'))
+            self.__skipped_files.append((source, ErrorMessages.BAD_PASSWORD))
             self.__skipped_inc()
             return
         except Exception as e:
-            self.__skipped_files.append((source, f'Unknown error – {e}'))
+            self.__skipped_files.append((source, 
+                                         ErrorMessages.UNKNOWN_ERROR.format(
+                                             error=e
+                                         )))
             self.__skipped_inc()
             return
 
 
 def main():
-    parser = argparse.ArgumentParser('encrypt_folder_tool')
-    parser.add_argument('-s', '--source', required=True, help='path to source directory')
-    parser.add_argument('-p', '--password', required=True, help='password for encryption or decryption')
-    parser.add_argument('-e', '--encrypt', action='store_true', help='encrypt files instead of decrypting')
+
+    util_name = Path(__file__).parent.name
+
+    parser = argparse.ArgumentParser(util_name)
+    parser.add_argument('-s', '--source', required=True, help=HelpMessages.SOURCE_HINT)
+    parser.add_argument('-p', '--password', required=True, help=HelpMessages.PASSWORD_HINT)
+    parser.add_argument('-e', '--encrypt', action='store_true', help=HelpMessages.ENCRYPT_HINT)
 
     args = parser.parse_args()
     raw_source = Path(args.source)
@@ -212,16 +230,16 @@ def main():
     app_dir = Path(__file__).resolve().parent
 
     if not source.is_relative_to(home):
-        parser.error("source must be inside the home directory")
+        parser.error(ParserMessages.PATH_NOT_HOME_DIR)
 
     if app_dir.is_relative_to(source):
-        parser.error("source must not contain the application directory")
+        parser.error(ParserMessages.PATH_TO_APP_DIR)
 
     if raw_source.is_symlink():
-        parser.error("source must not be a symbolic link")
+        parser.error(ParserMessages.SYMLICK_PATH)
 
     if not source.is_dir():
-        parser.error("source must be an existing directory")
+        parser.error(ParserMessages.PATH_NOT_EXISTING)
 
     encrypter = Encrypter()
     encrypter.cryptowalk(source, password, encrypt_flag)
