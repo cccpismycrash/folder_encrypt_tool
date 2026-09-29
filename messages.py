@@ -1,7 +1,7 @@
 from enum import StrEnum
 
 
-class LoggerMessages(StrEnum):
+class ErrorMessages(StrEnum):
     SYMLINK_NOT_ALLOWED = 'Symbolic links are not allowed'
     FILE_ALREADY_ENCRYPTED = 'File is already encrypted'
     NO_READ_PERMISSION = 'No read permission'
@@ -19,7 +19,8 @@ class ParserMessages(StrEnum):
 
 
 class OutputMessages(StrEnum):
-    SUMMARY = '[+] {count} operations completed.\n'
+    SUMMARY_ENCRYPT = '[+] {count} encryption operations completed.\n'
+    SUMMARY_DECRYPT = '[+] {count} decryption operations completed.\n'
     PROCESSED_COUNT = '\tProcessed: {count}.\n'
     SKIPPED_COUNT = '\tSkipped: {count}.'
     SKIPPED_FILE = '[!] {reason}: {file_path}'
