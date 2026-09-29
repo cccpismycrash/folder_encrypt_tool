@@ -6,15 +6,34 @@ from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.fernet import Fernet, InvalidToken
 import base64
 
+from messages import ErrorMessages, ParserMessages, OutputMessages, HelpMessages
+from logger import logger
+
+
 class Encrypter:
            
     __instance = None
     __signature = b'AbramovEgor'
 
+
     def __new__(cls):
         if cls.__instance is None:
             cls.__instance = super().__new__(cls)
         return cls.__instance
+
+
+    def __init__(self):
+        self.__skipped_count = 0
+        self.__processed_count = 0
+        self.__skipped_files = list()
+
+
+    def __skipped_inc(self):
+        self.__skipped_count += 1
+
+
+    def __processed_inc(self):
+        self.__processed_count += 1
 
 
     def cryptowalk(self, source: Path, password: str, encrypt_flag: bool):
@@ -28,35 +47,28 @@ class Encrypter:
             for filename in filenames:
                 files.append(Path(root) / filename)
 
-        skipped_files = list()
-
         # encrypt or decrypt files
         if encrypt_flag:
             for file in files:
-                if file.is_symlink():
-                    skipped_files.append((file, 'Symbolic links are not allowed'))
-                    continue
-                self.__encrypt(file, password, skipped_files)
+                self.__encrypt(file, password)
         else:
             for file in files:
-                if file.is_symlink():
-                    skipped_files.append((file, 'Symbolic links are not allowed'))
-                    continue
-                self.__decrypt(file, password, skipped_files)
+                self.__decrypt(file, password)
+                
 
         # output
-        processed = len(files) - len(skipped_files)
+        processed = len(files) - len(self.__skipped_files)
         operation = 'Encryption' if encrypt_flag else 'Decryption'
 
         print()
 
-        if skipped_files:
+        if self.__skipped_files:
             print(f'[+] {operation} completed.')
             print(f'    Processed: {processed}')
-            print(f'    Skipped:   {len(skipped_files)}')
+            print(f'    Skipped:   {len(self.__skipped_files)}')
 
             print('\nSkipped files:')
-            for file, reason in skipped_files:
+            for file, reason in self.__skipped_files:
                 print('[!]', f'{reason}:', file)
         else:
             print(f'[+] {operation} completed successfully.')
@@ -80,23 +92,31 @@ class Encrypter:
         return base64.urlsafe_b64encode(kdf.derive(password.encode()))
 
 
-    def __encrypt(self, source: Path, password: str, skipped_files: list):
+    def __encrypt(self, source: Path, password: str):
         """
         Encrypts the file in place without changing its path.
         """
 
+        if source.is_symlink():
+            self.__skipped_files.append((source, 'Symbolic links are not allowed')) 
+            self.__skipped_inc()
+            return
+
         try:
             with open(source, 'rb') as f:
                 if f.read(len(self.__signature)) == self.__signature:
-                    skipped_files.append((source, 'File is already encrypted'))
+                    self.__skipped_files.append((source, 'File is already encrypted'))
+                    self.__skipped_inc()
                     return
                 f.seek(0)
                 data = f.read()
         except PermissionError:
-            skipped_files.append((source, 'No read permission'))
+            self.__skipped_files.append((source, 'No read permission'))
+            self.__skipped_inc()
             return
         except Exception as e:
-            skipped_files.append((source, f'Unknown error – {e}'))
+            self.__skipped_files.append((source, f'Unknown error – {e}'))
+            self.__skipped_inc()
             return
 
         salt = os.urandom(16)
@@ -109,31 +129,42 @@ class Encrypter:
                 f_out.write(self.__signature)
                 f_out.write(salt)
                 f_out.write(encrypted_data)
+                self.__processed_inc()
         except PermissionError:
-            skipped_files.append((source, 'No write permission'))
+            self.__skipped_files.append((source, 'No write permission'))
+            self.__skipped_inc()
             return
         except Exception as e:
-            skipped_files.append((source, f'Unknown error – {e}'))
+            self.__skipped_files.append((source, f'Unknown error – {e}'))
+            self.__skipped_inc()
             return
 
 
-    def __decrypt(self, source: Path, password: str, skipped_files: list):
+    def __decrypt(self, source: Path, password: str):
         """
         Decrypts the file in place.
         """
 
+        if source.is_symlink():
+            self.__skipped_files.append((source, 'Symbolic links are not allowed'))
+            self.__skipped_inc()
+            return
+
         try:
             with open(source, 'rb') as f:
                 if f.read(len(self.__signature)) != self.__signature:
-                    skipped_files.append((source, 'File is not encrypted or was encrypted by another utility'))
+                    self.__skipped_files.append((source, 'File is not encrypted or was encrypted by another utility'))
+                    self.__skipped_inc()
                     return
                 salt = f.read(16)
                 encrypted_data = f.read()
         except PermissionError:
-            skipped_files.append((source, 'No read permission'))
+            self.__skipped_files.append((source, 'No read permission'))
+            self.__skipped_inc()
             return
         except Exception as e:
-            skipped_files.append((source, f'Unknown error – {e}'))
+            self.__skipped_files.append((source, f'Unknown error – {e}'))
+            self.__skipped_inc()
             return
 
 
@@ -145,18 +176,23 @@ class Encrypter:
             try:
                 with open(source, 'wb') as f_out:
                     f_out.write(data)
+                    self.__processed_inc()
             except PermissionError:
-                skipped_files.append((source, 'No write permission'))
+                self.__skipped_files.append((source, 'No write permission'))
+                self.__skipped_inc()
                 return
             except Exception as e:
-                skipped_files.append((source, f'Unknown error – {e}'))
+                self.__skipped_files.append((source, f'Unknown error – {e}'))
+                self.__skipped_inc()
                 return
 
         except InvalidToken:
-            skipped_files.append((source, 'Incorrect password or corrupted file'))
+            self.__skipped_files.append((source, 'Incorrect password or corrupted file'))
+            self.__skipped_inc()
             return
         except Exception as e:
-            skipped_files.append((source, f'Unknown error – {e}'))
+            self.__skipped_files.append((source, f'Unknown error – {e}'))
+            self.__skipped_inc()
             return
 
 
