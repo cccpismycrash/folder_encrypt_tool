@@ -16,3 +16,10 @@ class ParserMessages(StrEnum):
     PATH_TO_APP_DIR = 'source must not contain the application directory'
     SYMLICK_PATH = 'source must not be a symbolic link'
     PATH_NOT_EXISTING = 'source must be an existing directory'
+
+
+class OutputMessages(StrEnum):
+    SUMMARY = '[+] {count} operations completed.\n'
+    PROCESSED_COUNT = '\tProcessed: {count}.\n'
+    SKIPPED_COUNT = '\tSkipped: {count}.'
+    SKIPPED_FILE = '[!] {reason}: {file_path}'
