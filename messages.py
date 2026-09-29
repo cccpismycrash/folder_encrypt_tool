@@ -9,6 +9,7 @@ class ErrorMessages(StrEnum):
     NO_WRITE_PERMISSION = 'No write permission'
     FILE_NOT_ENCRYPTED = 'File is not encrypted or was encrypted by another utility'
     BAD_PASSWORD = 'Incorrect password or corrupted file'
+    UTILITY_NOT_EXECUTED = 'Utility was not executed'
 
 
 class ParserMessages(StrEnum):
@@ -19,10 +20,10 @@ class ParserMessages(StrEnum):
 
 
 class OutputMessages(StrEnum):
-    SUMMARY_ENCRYPT = '[+] {count} encryption operations completed.\n'
-    SUMMARY_DECRYPT = '[+] {count} decryption operations completed.\n'
-    PROCESSED_COUNT = '\tProcessed: {count}.\n'
-    SKIPPED_COUNT = '\tSkipped: {count}.'
+    SUMMARY_ENCRYPT = '[+] Encryption operation completed.'
+    SUMMARY_DECRYPT = '[+] Decryption operations completed.'
+    PROCESSED_COUNT = '[+] Processed: {count}.'
+    SKIPPED_COUNT = '[!] Skipped: {count}.'
     SKIPPED_FILE = '[!] {reason}: {file_path}'
 
 
