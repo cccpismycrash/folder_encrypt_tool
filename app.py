@@ -56,25 +56,34 @@ class Encrypter:
                 self.__decrypt(file, password)
                 
 
-        # # output
-        # processed = len(files) - len(self.__skipped_files)
-        # operation = 'Encryption' if encrypt_flag else 'Decryption'
+    def summary(self, encrypt_flag: bool):
+        """
+        Displays the results of the utility’s operation.
+        """
 
-        # print()
+        if self.__skipped_count == 0 and self.__processed_count == 0:
+            logger.warning(ErrorMessages.UTILITY_NOT_EXECUTED)          
 
-        # if self.__skipped_files:
-        #     print(f'[+] {operation} completed.')
-        #     print(f'    Processed: {processed}')
-        #     print(f'    Skipped:   {len(self.__skipped_files)}')
+        if encrypt_flag:
+            logger.info(OutputMessages.SUMMARY_ENCRYPT)
+            logger.info(OutputMessages.PROCESSED_COUNT.format(
+                count=self.__processed_count
+            ))
+        else:
+            logger.info(OutputMessages.SUMMARY_DECRYPT)
+            logger.info(OutputMessages.PROCESSED_COUNT.format(
+                count=self.__processed_count
+            ))
 
-        #     print('\nSkipped files:')
-        #     for file, reason in self.__skipped_files:
-        #         print('[!]', f'{reason}:', file)
-        # else:
-        #     print(f'[+] {operation} completed successfully.')
-        #     print(f'    Processed: {processed}')
-
-        # print()
+        if self.__skipped_count:
+            logger.warning(OutputMessages.SKIPPED_COUNT.format(
+                count=self.__skipped_count
+            ))
+            for file_path, reason in self.__skipped_files:
+                logger.warning(OutputMessages.SKIPPED_FILE.format(
+                    reason=reason,
+                    file_path=file_path
+                ))
 
 
     def __generate_key(self, password: str, salt: bytes) -> bytes:
@@ -243,6 +252,7 @@ def main():
 
     encrypter = Encrypter()
     encrypter.cryptowalk(source, password, encrypt_flag)
+    encrypter.summary(encrypt_flag)
 
 
 if __name__ == '__main__':
