@@ -23,3 +23,9 @@ class OutputMessages(StrEnum):
     PROCESSED_COUNT = '\tProcessed: {count}.\n'
     SKIPPED_COUNT = '\tSkipped: {count}.'
     SKIPPED_FILE = '[!] {reason}: {file_path}'
+
+
+class HelpMessages(StrEnum):
+    SOURCE_HINT = 'path to source directory'
+    PASSWORD_HINT = 'password for encryption or decryption'
+    ENCRYPT_HINT = 'encrypt files instead of decrypting'
