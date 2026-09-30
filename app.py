@@ -237,7 +237,12 @@ def main():
 
     util_name = Path(__file__).parent.name
 
-    parser = argparse.ArgumentParser(util_name)
+    parser = argparse.ArgumentParser(
+        prog=util_name,
+        description=HelpMessages.DESCRIPTION,
+        epilog=HelpMessages.EPILOG                             
+    )
+    
     parser.add_argument('-s', '--source', help=HelpMessages.SOURCE_HINT)
     parser.add_argument('-p', '--password', help=HelpMessages.PASSWORD_HINT)
     parser.add_argument('-e', '--encrypt', action='store_true', help=HelpMessages.ENCRYPT_HINT)

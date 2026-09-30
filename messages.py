@@ -36,3 +36,5 @@ class HelpMessages(StrEnum):
     PASSWORD_HINT = 'password for encryption or decryption'
     ENCRYPT_HINT = 'encrypt files instead of decrypting'
     SET_SIGN_HINT = 'set a new file encryption signature stored in .sign file in app directory'
+    DESCRIPTION = 'Utility for encrypting and decrypting all files in a directory and its subdirectories.'
+    EPILOG = 'Before first use, set the file signature with --set-sign'
