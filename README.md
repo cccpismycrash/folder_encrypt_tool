@@ -37,32 +37,48 @@ pip install -r requirements.txt
 ## Использование
 
 ```bash
-python -m app [-h] -s SOURCE -p PASSWORD [-e]
+python -m app [-h] [-s SOURCE] [-p PASSWORD] [-e] [--set-sign SET_SIGN]
 ```
 
 ### Аргументы
 
 ```text
--s, --source      путь к исходной директории
--p, --password    пароль для шифрования или дешифрования
--e, --encrypt     включить режим шифрования
+  -h, --help            show this help message and exit
+  -s, --source SOURCE   path to source directory
+  -p, --password PASSWORD
+                        password for encryption or decryption
+  -e, --encrypt         encrypt files instead of decrypting
+  --set-sign SET_SIGN   set a new file encryption signature stored in .sign file in app directory
 ```
 
 Если флаг `-e` не указан, программа работает в режиме дешифрования.
 
 ## Примеры использования
 
-Для шифрования всех файлов внутри директории:
+1. Для шифрования всех файлов внутри директории и его поддиректорий:
 
-```bash
-python -m app -s ./data -p password123 -e
-```
+    ```bash
+    python -m app -s ./data -p password123 -e
+    ```
 
-Для дешифрования файлов:
+    Ответ:
+    ```bash
+    2026-10-01 01:49:45 INFO        folder_encrypt_tool: [+] Encryption operation completed.
+    2026-10-01 01:49:45 INFO        folder_encrypt_tool: [+] Processed: 3.
+    ```
 
-```bash
-python -m app -s ./data -p password123
-```
+2. Для дешифрования файлов:
+
+    ```bash
+    python -m app -s ./data -p password123
+    ```
+
+    Ответ:
+    ```bash
+    2026-10-01 01:50:24 INFO        folder_encrypt_tool: [+] Decryption operations completed.
+    2026-10-01 01:50:24 INFO        folder_encrypt_tool: [+] Processed: 3.
+    ```
+
 
 ## Формат зашифрованного файла:
 
@@ -70,30 +86,12 @@ python -m app -s ./data -p password123
 +----------------+----------------+-------------------------+
 | Signature      | Salt           | Fernet encrypted data   |
 +----------------+----------------+-------------------------+
-| 11 bytes       | 16 bytes       | variable                |
+| ? bytes        | 16 bytes       | variable                |
 +----------------+----------------+-------------------------+
 ```
 
-Текущая сигнатура:
+Сигнатура не определена по умолчанию, перед первым использованием необходимо установить собственную сигнатуру через `--set-sign`.
 
-```text
-AbramovEgor
-```
-
-## Обработка исключительных случаев
-
-Перед дешифрованием программа проверяет наличие сигнатуры утилиты.
-
-Файл не будет шифроваться/дешифроваться, если:
-
-* файл уже зашифрован при запуске режима шифрования;
-* файл не был зашифрован данной утилитой;
-* файл является символической ссылкой;
-* отсутствуют права на чтение;
-* отсутствуют права на запись;
-* указан неправильный пароль;
-* зашифрованный файл поврежден;
-* прочая ошибка.
 
 ## Генерация ключа
 
@@ -127,8 +125,13 @@ Iterations:  100000
 ```text
 project/
 ├── app.py
+├── encrypter.py
+├── logger.py
+├── messages.py
 ├── README.md
 └── requirements.txt
 ```
 
-Основная логика находится в классе `Encrypter`. При реализации использовался паттерн **Singleton**.
+Логика шифрования находится в классе `Encrypter`, при его реализации использовался паттерн **Singleton**.
+
+Логика приложения находится в модуле `app.py`.
