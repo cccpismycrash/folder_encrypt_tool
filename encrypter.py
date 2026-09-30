@@ -75,7 +75,8 @@ class Encrypter:
         """
 
         if self.__skipped_count == 0 and self.__processed_count == 0:
-            logger.warning(ErrorMessages.UTILITY_NOT_EXECUTED)          
+            logger.warning(ErrorMessages.UTILITY_NOT_EXECUTED)     
+            return     
 
         if encrypt_flag:
             logger.info(OutputMessages.SUMMARY_ENCRYPT)

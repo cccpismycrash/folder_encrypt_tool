@@ -9,7 +9,6 @@ class ErrorMessages(StrEnum):
     NO_WRITE_PERMISSION = 'No write permission'
     FILE_NOT_ENCRYPTED = 'File is not encrypted or was encrypted by another utility'
     BAD_PASSWORD = 'Incorrect password or corrupted file'
-    UTILITY_NOT_EXECUTED = 'Utility was not executed'
 
 
 class ParserMessages(StrEnum):
@@ -28,7 +27,8 @@ class OutputMessages(StrEnum):
     PROCESSED_COUNT = '[+] Processed: {count}.'
     SKIPPED_COUNT = '[!] Skipped: {count}.'
     SKIPPED_FILE = '[!] {reason}: {file_path}'
-    SIGNATURE_UPDATED = '[+] New signature has been set'
+    SIGNATURE_UPDATED = '[+] New signature has been set.'
+    UTILITY_NOT_EXECUTED = '[!] Utility was not executed.'
 
 
 class HelpMessages(StrEnum):
