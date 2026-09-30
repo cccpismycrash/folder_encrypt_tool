@@ -17,6 +17,9 @@ class ParserMessages(StrEnum):
     PATH_TO_APP_DIR = 'source must not contain the application directory'
     SYMLICK_PATH = 'source must not be a symbolic link'
     PATH_NOT_EXISTING = 'source must be an existing directory'
+    PASSWORD_MISSING = 'password is missing'
+    SOURCE_MISSING = 'source is missing'
+    PASSWORD_AND_SOURCE_MISSING = 'password and source are missing'
 
 
 class OutputMessages(StrEnum):
@@ -25,9 +28,11 @@ class OutputMessages(StrEnum):
     PROCESSED_COUNT = '[+] Processed: {count}.'
     SKIPPED_COUNT = '[!] Skipped: {count}.'
     SKIPPED_FILE = '[!] {reason}: {file_path}'
+    SIGNATURE_UPDATED = '[+] New signature has been set'
 
 
 class HelpMessages(StrEnum):
     SOURCE_HINT = 'path to source directory'
     PASSWORD_HINT = 'password for encryption or decryption'
     ENCRYPT_HINT = 'encrypt files instead of decrypting'
+    SET_SIGN_HINT = 'set a new file encryption signature stored in .sign file in app directory'

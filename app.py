@@ -13,7 +13,7 @@ from logger import logger
 class Encrypter:
            
     __instance = None
-    __signature = b'AbramovEgor'
+    __signature_path = Path(__file__).resolve().parent / '.sign'
 
 
     def __new__(cls):
@@ -22,11 +22,12 @@ class Encrypter:
         return cls.__instance
 
 
-    def __init__(self):
+    def __init__(self, signature=None):
         self.__skipped_count = 0
         self.__processed_count = 0
         self.__skipped_files = list()
-
+        self.__signature = signature
+    
 
     def __skipped_inc(self):
         self.__skipped_count += 1
@@ -34,6 +35,18 @@ class Encrypter:
 
     def __processed_inc(self):
         self.__processed_count += 1
+
+
+    @staticmethod
+    def update_signature(signature: str):
+        """
+        Sets the passed string signature as the default.
+        """
+        Encrypter.__signature_path.write_bytes(signature.encode())
+
+
+    def set_signature(self):
+        self.__signature = self.__signature_path.read_bytes()
 
 
     def cryptowalk(self, source: Path, password: str, encrypt_flag: bool):
@@ -225,14 +238,34 @@ def main():
     util_name = Path(__file__).parent.name
 
     parser = argparse.ArgumentParser(util_name)
-    parser.add_argument('-s', '--source', required=True, help=HelpMessages.SOURCE_HINT)
-    parser.add_argument('-p', '--password', required=True, help=HelpMessages.PASSWORD_HINT)
+    parser.add_argument('-s', '--source', help=HelpMessages.SOURCE_HINT)
+    parser.add_argument('-p', '--password', help=HelpMessages.PASSWORD_HINT)
     parser.add_argument('-e', '--encrypt', action='store_true', help=HelpMessages.ENCRYPT_HINT)
+    parser.add_argument('--set-sign', help=HelpMessages.SET_SIGN_HINT)
 
     args = parser.parse_args()
-    raw_source = Path(args.source)
+    
+    signature = args.set_sign
+
+    if signature:
+        Encrypter.update_signature(signature)
+        logger.info(OutputMessages.SIGNATURE_UPDATED)
+        return
+
+    if args.source is not None:
+        raw_source = Path(args.source)
+    else:
+        raw_source = None
+    
     password = args.password
     encrypt_flag = args.encrypt 
+
+    if password is None and raw_source is None:
+        parser.error(ParserMessages.PASSWORD_AND_SOURCE_MISSING)
+    elif password is None:
+        parser.error(ParserMessages.PASSWORD_MISSING)
+    elif raw_source is None:
+        parser.error(ParserMessages.SOURCE_MISSING)
 
     source = raw_source.resolve()
     home = Path.home().resolve()
@@ -251,6 +284,7 @@ def main():
         parser.error(ParserMessages.PATH_NOT_EXISTING)
 
     encrypter = Encrypter()
+    encrypter.set_signature()
     encrypter.cryptowalk(source, password, encrypt_flag)
     encrypter.summary(encrypt_flag)
 
