@@ -182,3 +182,85 @@ project/
 ## Рекомендации
 1. Не меняйте сигнатуру после шифрования файла. Чтобы расшифровать файлы с старой сигнатурой после смены сигнатуры, необходимо установить старую сигнатуру.
 2. Можно добавять новые файлы в "зашифрованные" директории, после чего снова шифровать эти директории. Можно также шифровать новые файлы с другим паролем. Расшифровывать такие директории придется в несколько запусков утилиты (сколько паролей, столько и запусков). При каждом запуске будут расшифровываться файлы с валидным паролем, а остальные останутся нетронутыми.
+
+
+## Диаграмма классов
+
+![Диаграмма классов утилиты folder_encrypt_tool](./assets/class_diagram.png)
+
+**Код для вывода диаграммы классов через plantuml:**
+```plantuml
+@startuml
+
+class app {
+    + main()
+}
+
+class Encrypter <<module>> {
+    - {static} __instance
+    - {static} __signature_path: Path
+    - __signature: bytes
+
+    + {static} update_signature(signature: str)
+    + set_signature(signature: str)
+    + cryptowalk(source: Path, password: str, encrypt: bool)
+    + summary(encrypt: bool)
+    - __encrypt(source: Path, password: str)
+    - __decrypt(source: Path, password: str)
+    - __generate_key(password: str, salt: bytes)
+}
+
+enum ErrorMessages {
+    SYMLINK_NOT_ALLOWED
+    FILE_ALREADY_ENCRYPTED
+    NO_READ_PERMISSION
+    UNKNOWN_ERROR
+    NO_WRITE_PERMISSION
+    FILE_NOT_ENCRYPTED
+    BAD_PASSWORD
+}
+
+enum ParserMessages {
+    PATH_NOT_HOME_DIR
+    PATH_TO_APP_DIR
+    SYMLICK_PATH
+    PATH_NOT_EXISTING
+    PASSWORD_MISSING
+    SOURCE_MISSING
+    PASSWORD_AND_SOURCE_MISSING
+}
+
+enum OutputMessages {
+    SUMMARY_ENCRYPT
+    SUMMARY_DECRYPT
+    PROCESSED_COUNT
+    SKIPPED_COUNT
+    SKIPPED_FILE
+    SIGNATURE_UPDATED
+    UTILITY_NOT_EXECUTED
+}
+
+enum HelpMessages {
+    SOURCE_HINT
+    PASSWORD_HINT
+    ENCRYPT_HINT
+    SET_SIGN_HINT
+    DESCRIPTION
+    EPILOG
+}
+
+class logger <<module>> {
+    - getLogger(name: str)
+}
+
+app ..> Encrypter : uses
+app ..> ParserMessages : uses
+app ..> HelpMessages : uses
+
+Encrypter ..> ErrorMessages : uses
+Encrypter ..> OutputMessages : uses
+Encrypter ..> logger : uses
+
+@enduml
+```
+
